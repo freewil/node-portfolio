@@ -21,14 +21,14 @@ console.log('========= Step 2 =========')
 // iterate over each fund in the portfolio
 var total = 0
 for (let portfolioFund of portfolio) {
-  var {symbol, shares} = portfolioFund
+  let {symbol, shares} = portfolioFund
 
   // get latest price for the fund
-  var price = fundPrices.getPrice(symbol)
-  var {name} = funds.getBySymbol(symbol)
+  let price = fundPrices.getPrice(symbol)
+  let {name} = funds.getBySymbol(symbol)
 
   // calculate value of the fund based on shares in portfolio
-  var value = shares * price
+  let value = shares * price
 
   // calculate total value of portfolio across all funds
   total += value

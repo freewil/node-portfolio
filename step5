@@ -40,18 +40,18 @@ if (!allocationSet) {
 var portfolioTotal = 0
 var assetClassTotals = {}
 for (let portfolioFund of allocationSet.portfolio) {
-  var {symbol, shares} = portfolioFund
+  let {symbol, shares} = portfolioFund
 
   // get price for the fund on the given date
-  var price = historicalPrices.getPrice(symbol, date)
+  let price = historicalPrices.getPrice(symbol, date)
   if (price === null) {
     console.error('Unable to get price for %s on %s', symbol, date.toString())
     process.exit(1)
   }
-  var {name, assetClass} = funds.getBySymbol(symbol)
+  let {name, assetClass} = funds.getBySymbol(symbol)
 
   // calculate value of the fund based on shares in portfolio
-  var value = shares * price
+  let value = shares * price
 
   // calculate total value of portfolio for each asset class
   if (!assetClassTotals[assetClass]) {
