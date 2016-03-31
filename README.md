@@ -1,6 +1,8 @@
 # node-portfolio
 
-Code Challenge Sample by [Sean Lavine](mailto:lavis88@gmail.com?subject=Let\'s%20discuss%20terms)
+Node.js sample code that downloads price info and displays financial portfolio information.
+
+Author: [Sean Lavine](mailto:lavis88@gmail.com?subject=Let\'s%20discuss%20terms)
 
 ## Design Considerations
 I decided to use streams where possible in this challenge. Streams can be
