@@ -1,0 +1,98 @@
+#!/usr/bin/env node --harmony_destructuring
+'use strict'
+
+/*
+ * step4
+ *
+ * Downloads historical quotes for the funds (funds.json) from Jan 1 2014
+ * through Jan 1 2015 using a stream and writes it to a data file
+ * (historical_prices.json).
+ */
+
+const fs = require('fs')
+const path = require('path')
+const request = require('request')
+const debug = require('debug')('step4')
+const async = require('async')
+const csv = require('csv-parse')
+const through2 = require('through2')
+const jsonstream2 = require('jsonstream2')
+const funds = require('./fixtures/funds.json')
+
+console.log('========= Step 4 =========')
+
+const priceStream = (symbol) => {
+  debug('getting priceStream for: ' + symbol)
+  return request({
+    uri: 'http://ichart.yahoo.com/table.csv',
+    method: 'GET',
+    qs: {
+      s: symbol,
+      // from
+      a: '0', // 0-indexed month
+      b: '1',
+      c: '2014',
+      // to
+      d: '0',
+      e: '1',
+      f: '2015',
+      g: 'd',   // interval: daily
+      ignore: '.csv'
+    }
+  })
+}
+
+// create stream to write to historical_prices.json
+var writeStream = fs.createWriteStream(path.join(__dirname, 'prices', 'historical_prices.json'))
+
+// iterate over each fund serially
+var isFirstIteration = true
+async.eachSeries(funds, function(fund, done) {
+  var {symbol} = fund
+
+  // first fund/iteration will write initial opening bracket `[` for JSON output
+  // subsequent iterations will continue with `,` after previous objects
+  // after all funds have been writen, we'll manually write closing bracket ']'
+  if (isFirstIteration) {
+    isFirstIteration = false
+    var stringifyStream = jsonstream2.stringify('[\n', ',\n', '')
+  } else {
+    var stringifyStream = jsonstream2.stringify(',\n', ',\n', '')
+  }
+
+  // download historical prices from Yahoo Finance as a CSV stream
+  var isHeaderLine = true
+  priceStream(symbol)
+  // parse each csv record/line
+  .pipe(csv())
+  .pipe(through2.obj(function(line, enc, cb) {
+    // first csv line/record in stream will be headers, skip it
+    if (isHeaderLine) {
+      isHeaderLine = false
+      return cb(null)
+    }
+
+    // transform csv record/line to an object representing the price
+    // for the fund on the given date
+    this.push({
+      date: line[0],
+      symbol: symbol,
+      price: Number(line[4])
+    })
+    cb(null)
+  }))
+  .pipe(stringifyStream)
+  .on('end', () => {
+    debug('jsonstream2 end')
+    done(null)
+  })
+  // Don't end writeStream, since we want to continue to write to it for each fund
+  .pipe(writeStream, {end: false})
+}, function(err) {
+  if (err) return console.error(err)
+
+  // Manually close writeStream with {end: false} after we're done with all funds.
+  // Write closing bracket for JSON output
+  writeStream.end('\n]\n')
+  debug('done!')
+})

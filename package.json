@@ -1,0 +1,26 @@
+{
+  "name": "node-portfolio",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Node.js sample code that downloads price info and displays financial portfolio information.",
+  "main": "step1.js",
+  "scripts": {
+    "start": "./step1 && ./step2 && ./step3 && ./step4 && ./step5",
+    "clean": "rm -f prices/*.json"
+  },
+  "author": "Sean Lavine <lavis88@gmail.com>",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "async": "^2.0.0-rc.2",
+    "csv-parse": "^1.0.2",
+    "debug": "^2.2.0",
+    "jsonstream2": "^1.1.1",
+    "moment": "^2.12.0",
+    "request": "^2.69.0",
+    "through2": "^2.0.1"
+  },
+  "engines": {
+    "node": "^5.9.1",
+    "npm": "^3.7.3"
+  }
+}

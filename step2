@@ -1,0 +1,37 @@
+#!/usr/bin/env node --harmony_destructuring
+'use strict'
+
+/*
+ * step2
+ *
+ * Iterates over a portfolio of funds (portfolio.json) and calculates the total
+ * value of the portfolio based on the quotes downloaded in step1 and number
+ * of shares in the portfolio for each fund.
+ *
+ */
+
+const funds = require('./lib/funds')
+const fundPrices = require('./lib/fundPrices')
+const formatNumber = require('./lib/formatNumber')
+
+const portfolio = require('./fixtures/portfolio.json')
+
+console.log('========= Step 2 =========')
+
+// iterate over each fund in the portfolio
+var total = 0
+for (let portfolioFund of portfolio) {
+  var {symbol, shares} = portfolioFund
+
+  // get latest price for the fund
+  var price = fundPrices.getPrice(symbol)
+  var {name} = funds.getBySymbol(symbol)
+
+  // calculate value of the fund based on shares in portfolio
+  var value = shares * price
+
+  // calculate total value of portfolio across all funds
+  total += value
+  console.log('%s: %d shares at %s ea. -- %s', name, shares, formatNumber(price), formatNumber(value))
+}
+console.log('Total: %s', formatNumber(total))

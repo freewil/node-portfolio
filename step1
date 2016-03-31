@@ -1,0 +1,49 @@
+#!/usr/bin/env node
+'use strict'
+
+/*
+ * step1
+ *
+ * Downloads latest quotes for funds as a stream (see funds.json), parses the CSV,
+ * and writes the quotes to fund_prices.json
+ */
+
+const fs = require('fs')
+const path = require('path')
+const request = require('request')
+const csv = require('csv-parse')
+const through2 = require('through2')
+const jsonstream2 = require('jsonstream2')
+const funds = require('./fixtures/funds.json')
+
+console.log('========= Step 1 =========')
+
+// get CSV-string of symbols for all the funds
+var symbols = funds.map(fund => fund.symbol).join(',')
+
+// symbol and latest value
+var properties = ['s', 'l1'].join('')
+
+// stream CSV file of quotes with `properties` as columns
+request({
+  uri: 'https://download.finance.yahoo.com/d/quotes.csv',
+  method: 'GET',
+  qs: {
+    f: properties,
+    e: '.csv',
+    s: symbols
+  }
+})
+// parse each line/record from csv stream
+.pipe(csv())
+// transform each csv line/record to a price object
+.pipe(through2.obj(function(line, enc, cb) {
+  this.push({
+    symbol: line[0],
+    price: Number(line[1])
+  })
+  cb(null)
+}))
+// stringify the price object to JSON and write to file
+.pipe(jsonstream2.stringify())
+.pipe(fs.createWriteStream(path.join(__dirname, 'prices', 'fund_prices.json')))

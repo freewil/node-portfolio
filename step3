@@ -1,0 +1,51 @@
+#!/usr/bin/env node --harmony_destructuring
+'use strict'
+
+/*
+ * step3
+ *
+ * Iterates over a portfolio of funds (portfolio.json), similar to step2, but
+ * also breaks down the weight / percentage of value held in the portfolio
+ * by asset class.
+ */
+
+const funds = require('./lib/funds')
+const fundPrices = require('./lib/fundPrices')
+const formatNumber = require('./lib/formatNumber')
+
+const portfolio = require('./fixtures/portfolio.json')
+
+console.log('========= Step 3 =========')
+
+// iterate over each fund in the portfolio
+var portfolioTotal = 0
+var assetClassTotals = {}
+for (let portfolioFund of portfolio) {
+  let {symbol, shares} = portfolioFund
+
+  // get latest price for the fund
+  let price = fundPrices.getPrice(symbol)
+  let {assetClass} = funds.getBySymbol(symbol)
+
+  // calculate value of the fund based on shares in portfolio
+  let value = shares * price
+
+  // calculate total value of portfolio for each asset class
+  if (!assetClassTotals[assetClass]) {
+    assetClassTotals[assetClass] = 0
+  }
+  assetClassTotals[assetClass] += value
+
+  // calculate total value of portfolio across all asset classes
+  portfolioTotal += value
+}
+
+// iterate over each asset class total
+console.log('Asset Class Breakdown')
+for (let assetClass in assetClassTotals) {
+  let assetClassTotal = assetClassTotals[assetClass]
+
+  // calculate percentage the asset class represents in entire portfolio
+  let pct = ((assetClassTotal / portfolioTotal) * 100).toFixed(2)
+  console.log('  %s: %s%', assetClass, pct)
+}
